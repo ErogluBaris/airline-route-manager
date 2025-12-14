@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: airline-route-manager
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/airline_route_manager
+    username: airline_route_manager
+    password: airline_route_manager
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        show_sql: false
+
+  liquibase:
+    enabled: false

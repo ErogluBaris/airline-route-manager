@@ -15,6 +15,9 @@ public class Location {
     @SequenceGenerator(name = "location_seq", sequenceName = "seq_location")
     private Long id;
 
+    @Version
+    private Integer version;
+
     private String name;
 
     private String country;

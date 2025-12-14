@@ -4,13 +4,17 @@ import com.thy.airlineroutemanager.enums.TransportationType;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.DayOfWeek;
+import java.util.List;
+
 @Setter
 @Getter
 public class TransportationDto {
 
     private Long id;
-    private String originLocation;
-    private String destinationLocation;
+    private Integer version;
+    private Long originLocation;
+    private Long destinationLocation;
     private TransportationType transportationType;
-    private String operatingDays;
+    private List<DayOfWeek> operatingDays;
 }

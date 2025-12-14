@@ -4,6 +4,8 @@ import com.thy.airlineroutemanager.enums.TransportationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Setter
 @Getter
@@ -14,13 +16,27 @@ public class Transportation {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "transportation_seq")
     @SequenceGenerator(name = "transportation_seq", sequenceName = "seq_transportation")
+    @Column(name = "id")
     private Long id;
 
-    private String originLocation;
+    @Version
+    private Integer version;
 
-    private String destinationLocation;
+    //@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    //@JoinColumn(name = "origin_location_id")
+    @Column(name = "origin_location")
+    private Long originLocation;
 
+    //@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    //@JoinColumn(name = "destination_location_id")
+    @Column(name = "destination_location")
+    private Long destinationLocation;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transportation_type")
     private TransportationType transportationType;
 
-    private String operatingDays;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "operating_days", columnDefinition = "int[]")
+    private Integer[] operatingDays;
 }
