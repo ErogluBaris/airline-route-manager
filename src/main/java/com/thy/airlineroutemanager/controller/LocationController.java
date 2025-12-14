@@ -3,8 +3,10 @@ package com.thy.airlineroutemanager.controller;
 import com.thy.airlineroutemanager.dto.LocationDto;
 import com.thy.airlineroutemanager.service.LocationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 @RequestMapping("/location")
 @RestController

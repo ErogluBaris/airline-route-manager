@@ -19,3 +19,7 @@ spring:
 
   liquibase:
     enabled: false
+
+jwt:
+  secret: abda600636edcef1692817fbff2a36813ff5ff5e5c9b693dd36feb7a9de80ccb
+  expiration: 3600000

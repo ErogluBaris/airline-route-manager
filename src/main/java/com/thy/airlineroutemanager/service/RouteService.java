@@ -22,7 +22,7 @@ public class RouteService {
         Long destinationLocationId = request.getDestinationId();
         int requestedOperatingDay = request.getDateTime().getDayOfWeek().getValue();
 
-        List<Transportation> transportationList = transportationService.findByOriginOrDestination(originLocationId, destinationLocationId, requestedOperatingDay);//TODO operationDay kontrol ekle
+        List<Transportation> transportationList = transportationService.findByOriginOrDestination(originLocationId, destinationLocationId, requestedOperatingDay);
 
         List<RouteDto> routeDtoList = new ArrayList<>();
         Set<Long> destinationIdsForOrigin = new HashSet<>();
@@ -35,7 +35,7 @@ public class RouteService {
             }
         }
 
-        transportationList.addAll(transportationService.findByOriginsAndDestinationsAndTransportationType(destinationIdsForOrigin, originIdsForDestination, TransportationType.FLIGHT, requestedOperatingDay));//TODO operationDay kontrol ekle
+        transportationList.addAll(transportationService.findByOriginsAndDestinationsAndTransportationType(destinationIdsForOrigin, originIdsForDestination, TransportationType.FLIGHT, requestedOperatingDay));
 
         return processRoutes(transportationList, originLocationId, destinationLocationId, routeDtoList);
     }

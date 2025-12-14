@@ -3,8 +3,10 @@ package com.thy.airlineroutemanager.controller;
 import com.thy.airlineroutemanager.dto.TransportationDto;
 import com.thy.airlineroutemanager.service.TransportationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@PreAuthorize("hasAnyRole('ADMIN')")
 @RequiredArgsConstructor
 @RequestMapping("/transportation")
 @RestController
