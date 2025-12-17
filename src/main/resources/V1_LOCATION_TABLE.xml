@@ -1,0 +1,75 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Sequence -->
+    <changeSet id="001-location-sequence" author="baris">
+        <createSequence
+                sequenceName="seq_location"
+                startValue="1"
+                incrementBy="1"/>
+    </changeSet>
+
+    <!-- Table -->
+    <changeSet id="002-location-table" author="baris">
+        <createTable tableName="location">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="version" type="INTEGER"/>
+
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="country" type="VARCHAR(255)"/>
+
+            <column name="city" type="VARCHAR(255)"/>
+
+            <column name="location_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Indexes (B-tree) -->
+    <changeSet id="003-location-indexes" author="baris">
+        <createIndex indexName="idx_location_name"
+                     tableName="location">
+            <column name="name"/>
+        </createIndex>
+
+        <createIndex indexName="idx_location_code"
+                     tableName="location">
+            <column name="location_code"/>
+        </createIndex>
+
+        <createIndex indexName="idx_location_country_city"
+                     tableName="location">
+            <column name="country"/>
+            <column name="city"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Trigram extension + GIN indexes for ILIKE -->
+    <changeSet id="004-location-trigram-indexes" author="baris" runOnChange="true">
+        <sql>
+            CREATE EXTENSION IF NOT EXISTS pg_trgm;
+        </sql>
+
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_location_name_trgm
+                ON location USING GIN (name gin_trgm_ops);
+        </sql>
+
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_location_code_trgm
+                ON location USING GIN (location_code gin_trgm_ops);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

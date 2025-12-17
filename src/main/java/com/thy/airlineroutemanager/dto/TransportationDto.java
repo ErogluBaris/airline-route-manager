@@ -13,8 +13,8 @@ public class TransportationDto {
 
     private Long id;
     private Integer version;
-    private Long originLocation;
-    private Long destinationLocation;
+    private LocationDto originLocation;
+    private LocationDto destinationLocation;
     private TransportationType transportationType;
     private List<DayOfWeek> operatingDays;
 }

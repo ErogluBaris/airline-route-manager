@@ -4,6 +4,7 @@ import com.thy.airlineroutemanager.entity.User;
 import com.thy.airlineroutemanager.repository.UserRepository;
 import com.thy.airlineroutemanager.request.LoginRequest;
 import com.thy.airlineroutemanager.request.RegisterRequest;
+import com.thy.airlineroutemanager.response.LoginResponse;
 import com.thy.airlineroutemanager.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,8 +26,8 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-
+    public LoginResponse login(@RequestBody LoginRequest request) {
+        //TODO buradaki işlemleri service' e taşı.
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -37,12 +38,12 @@ public class AuthController {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow();
 
-        return tokenProvider.generateToken(user);
+        return new LoginResponse(tokenProvider.generateToken(user), user.getRole());
     }
 
     @PostMapping("/register")
     public void register(@RequestBody RegisterRequest request) {
-
+        //TODO buradaki işlemleri service' e taşı.
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));

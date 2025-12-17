@@ -15,10 +15,18 @@ import java.util.List;
 public interface TransportationMapper {
 
     @Mapping(target = "operatingDays", qualifiedByName = "convertIntArrayToDayOfWeekList")
+    @Mapping(target = "originLocation.id", source = "originLocation")
+    @Mapping(target = "destinationLocation.id", source = "destinationLocation")
     TransportationDto toDto(Transportation transportation);
 
+    @Mapping(target = "originLocation", source = "originLocation.id")
+    @Mapping(target = "destinationLocation", source = "destinationLocation.id")
     @Mapping(target = "operatingDays", qualifiedByName = "convertOperatingDaysToIntArray")
     Transportation toEntity(TransportationDto transportationDto);
+
+    List<TransportationDto> toDtoList(List<Transportation> transportation);
+
+    List<Transportation> toEntityList(List<TransportationDto> transportationDto);
 
     @Named("convertOperatingDaysToIntArray")
     default Integer[] convertOperatingDaysToIntArray(List<DayOfWeek> operatingDays) {

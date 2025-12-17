@@ -1,11 +1,15 @@
 package com.thy.airlineroutemanager.service;
 
+import com.thy.airlineroutemanager.domain.Route;
 import com.thy.airlineroutemanager.dto.RouteDto;
 import com.thy.airlineroutemanager.entity.Transportation;
 import com.thy.airlineroutemanager.enums.TransportationType;
+import com.thy.airlineroutemanager.mapper.TransportationMapper;
 import com.thy.airlineroutemanager.request.RouteRequest;
+import com.thy.airlineroutemanager.response.RouteResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -16,15 +20,21 @@ import java.util.stream.Collectors;
 public class RouteService {
 
     private final TransportationService transportationService;
+    private final TransportationMapper transportationMapper;
 
-    public List<RouteDto> findRoutes(RouteRequest request) {
-        Long originLocationId = request.getOriginId();
-        Long destinationLocationId = request.getDestinationId();
-        int requestedOperatingDay = request.getDateTime().getDayOfWeek().getValue();
+    @Cacheable(
+            cacheNames = "routes",
+            key = "T(java.util.Objects).hash(#request.originLocationId, #request.destinationLocationId, #request.date.dayOfWeek.value)",
+            unless = "#result.routes == null || #result.routes.isEmpty()"
+    )
+    public RouteResponse findRoutes(RouteRequest request) {
+        Long originLocationId = request.getOriginLocationId();
+        Long destinationLocationId = request.getDestinationLocationId();
+        int requestedOperatingDay = request.getDate().getDayOfWeek().getValue();
 
         List<Transportation> transportationList = transportationService.findByOriginOrDestination(originLocationId, destinationLocationId, requestedOperatingDay);
 
-        List<RouteDto> routeDtoList = new ArrayList<>();
+        List<Route> routeDtoList = new ArrayList<>();
         Set<Long> destinationIdsForOrigin = new HashSet<>();
         Set<Long> originIdsForDestination = new HashSet<>();
         for (Transportation transportation : transportationList) {
@@ -37,10 +47,14 @@ public class RouteService {
 
         transportationList.addAll(transportationService.findByOriginsAndDestinationsAndTransportationType(destinationIdsForOrigin, originIdsForDestination, TransportationType.FLIGHT, requestedOperatingDay));
 
-        return processRoutes(transportationList, originLocationId, destinationLocationId, routeDtoList);
+        return new RouteResponse(
+                convertToDtoList(
+                        processRoutes(transportationList, originLocationId, destinationLocationId, routeDtoList)
+                )
+        );
     }
 
-    private List<RouteDto> processRoutes(List<Transportation> transportationList, Long originId, Long destinationId, List<RouteDto> routeDtoList) {
+    private List<Route> processRoutes(List<Transportation> transportationList, Long originId, Long destinationId, List<Route> routeDtoList) {
         Map<Long, List<Transportation>> transportationByOrigin = transportationList.stream()
                 .collect(Collectors.groupingBy(Transportation::getOriginLocation));
 
@@ -53,13 +67,13 @@ public class RouteService {
         return routeDtoList;
     }
 
-    private void processRecursively(Map<Long, List<Transportation>> transportationByOrigin, List<Transportation> searchedTransportations, List<Transportation> route, Long destinationId, List<RouteDto> routeDtoList) {
+    private void processRecursively(Map<Long, List<Transportation>> transportationByOrigin, List<Transportation> searchedTransportations, List<Transportation> route, Long destinationId, List<Route> routeDtoList) {
         if ((route.size() == 3 && !CollectionUtils.isEmpty(route) && !isDestination(destinationId, route.getLast()))) {
             return;
         }
 
         if (!CollectionUtils.isEmpty(route) && isRouteValid(route, destinationId)) {
-            routeDtoList.add(new RouteDto(new ArrayList<>(route)));
+            routeDtoList.add(new Route(new ArrayList<>(route)));
             return;
         }
 
@@ -85,6 +99,18 @@ public class RouteService {
                 route.removeLast();
             }
         }
+    }
+
+    public List<RouteDto> convertToDtoList(List<Route> routes) {
+        List<RouteDto> routeDtoList = routes.stream()
+                .map(route -> new RouteDto(transportationMapper.toDtoList(route.getTransportations())))
+                .toList();
+
+        transportationService.setLocations(routeDtoList.stream()
+                .flatMap(routeDto -> routeDto.getTransportations().stream())
+                .toList());
+
+        return routeDtoList;
     }
 
     private static boolean isRouteValid(List<Transportation> route, Long destinationId) {

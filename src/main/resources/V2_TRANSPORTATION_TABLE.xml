@@ -1,0 +1,93 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Sequence -->
+    <changeSet id="005-transportation-sequence" author="baris">
+        <createSequence
+                sequenceName="seq_transportation"
+                startValue="1"
+                incrementBy="1"/>
+    </changeSet>
+
+    <!-- Table -->
+    <changeSet id="006-transportation-table" author="baris">
+        <createTable tableName="transportation">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="version" type="INTEGER"/>
+
+            <column name="origin_location" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="destination_location" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="transportation_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="operating_days" type="INT[]"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Indexes -->
+    <changeSet id="007-transportation-indexes" author="baris">
+        <createIndex indexName="idx_transportation_origin"
+                     tableName="transportation">
+            <column name="origin_location"/>
+        </createIndex>
+
+        <createIndex indexName="idx_transportation_destination"
+                     tableName="transportation">
+            <column name="destination_location"/>
+        </createIndex>
+
+        <createIndex indexName="idx_transportation_type"
+                     tableName="transportation">
+            <column name="transportation_type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_transportation_origin_type"
+                     tableName="transportation">
+            <column name="origin_location"/>
+            <column name="transportation_type"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- GIN index for array -->
+    <changeSet id="008-transportation-operating-days-gin" author="baris">
+        <sql>
+            CREATE INDEX idx_transportation_operating_days
+                ON transportation
+                USING GIN (operating_days);
+        </sql>
+    </changeSet>
+
+    <!-- Foreign Keys -->
+    <changeSet id="009-transportation-fks" author="baris">
+        <addForeignKeyConstraint
+                constraintName="fk_transportation_origin_location"
+                baseTableName="transportation"
+                baseColumnNames="origin_location"
+                referencedTableName="location"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+
+        <addForeignKeyConstraint
+                constraintName="fk_transportation_destination_location"
+                baseTableName="transportation"
+                baseColumnNames="destination_location"
+                referencedTableName="location"
+                referencedColumnNames="id"
+                onDelete="RESTRICT"/>
+    </changeSet>
+
+</databaseChangeLog>

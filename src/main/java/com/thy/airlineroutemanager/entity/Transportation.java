@@ -9,17 +9,24 @@ import org.hibernate.type.SqlTypes;
 
 @Setter
 @Getter
-@Table(name = "transportation")
+@Table(name = "transportation",
+        indexes = {
+                @Index(name = "idx_transportation_origin", columnList = "origin_location"),
+                @Index(name = "idx_transportation_destination", columnList = "destination_location"),
+                @Index(name = "idx_transportation_type", columnList = "transportation_type"),
+                @Index(name = "idx_transportation_origin_type", columnList = "origin_location, transportation_type")
+        })
 @Entity
 public class Transportation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "transportation_seq")
-    @SequenceGenerator(name = "transportation_seq", sequenceName = "seq_transportation")
+    @SequenceGenerator(name = "transportation_seq", sequenceName = "seq_transportation", allocationSize = 1)
     @Column(name = "id")
     private Long id;
 
     @Version
+    @Column(name = "version")
     private Integer version;
 
     //@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)

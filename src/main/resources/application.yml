@@ -1,24 +1,32 @@
 spring:
   application:
     name: airline-route-manager
-
+  liquibase:
+    enabled: true
+    change-log: changelog-master.xml
+    default-schema: public
   datasource:
     url: jdbc:postgresql://localhost:5432/airline_route_manager
     username: airline_route_manager
     password: airline_route_manager
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         show_sql: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
 
-  liquibase:
-    enabled: false
 
 jwt:
   secret: abda600636edcef1692817fbff2a36813ff5ff5e5c9b693dd36feb7a9de80ccb

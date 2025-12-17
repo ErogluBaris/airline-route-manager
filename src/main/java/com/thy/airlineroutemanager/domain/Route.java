@@ -1,5 +1,6 @@
-package com.thy.airlineroutemanager.dto;
+package com.thy.airlineroutemanager.domain;
 
+import com.thy.airlineroutemanager.entity.Transportation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,9 +10,9 @@ import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
 @Getter
-public class RouteDto {
+@Setter
+public class Route {
 
-    private List<TransportationDto> transportations;
+    private List<Transportation> transportations;
 }

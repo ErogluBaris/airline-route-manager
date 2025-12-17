@@ -1,5 +1,6 @@
-package com.thy.airlineroutemanager.dto;
+package com.thy.airlineroutemanager.response;
 
+import com.thy.airlineroutemanager.dto.RouteDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Setter
 @Getter
-public class RouteDto {
+public class RouteResponse {
 
-    private List<TransportationDto> transportations;
+    private List<RouteDto> routes;
 }

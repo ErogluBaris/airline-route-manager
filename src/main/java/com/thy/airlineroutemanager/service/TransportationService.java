@@ -1,16 +1,23 @@
 package com.thy.airlineroutemanager.service;
 
+import com.sun.jdi.connect.Transport;
+import com.thy.airlineroutemanager.dto.LocationDto;
 import com.thy.airlineroutemanager.dto.TransportationDto;
 import com.thy.airlineroutemanager.entity.Transportation;
-import com.thy.airlineroutemanager.enums.OperatingDay;
 import com.thy.airlineroutemanager.enums.TransportationType;
 import com.thy.airlineroutemanager.mapper.TransportationMapper;
 import com.thy.airlineroutemanager.repository.TransportationRepository;
+import com.thy.airlineroutemanager.request.SearchRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Service
@@ -18,9 +25,13 @@ public class TransportationService {
 
     private final TransportationRepository repository;
     private final TransportationMapper mapper;
+    private final LocationService locationService;
 
     public TransportationDto findById(Long id) {
-        return mapper.toDto(repository.findById(id).orElseThrow(() -> new RuntimeException("Record Not Found")));
+        TransportationDto transportationDto = mapper.toDto(repository.findById(id).orElseThrow(() -> new RuntimeException("Record Not Found")));
+        setLocations(List.of(transportationDto));
+
+        return transportationDto;
     }
 
     public TransportationDto save(TransportationDto transportationDto) {
@@ -41,5 +52,36 @@ public class TransportationService {
 
     public List<Transportation> findByOriginsAndDestinationsAndTransportationType(Set<Long> originIds, Set<Long> destinationIds, TransportationType type, Integer operatingDay) {
         return repository.findAllByOriginLocationInAndDestinationLocationInAndTransportationTypeAndOperatingDay(originIds, destinationIds, type.name(), operatingDay);
+    }
+
+    public List<TransportationDto> findAll(SearchRequest request){
+        List<TransportationDto> transportations = mapper.toDtoList(repository.findAllBy(Pageable.ofSize(request.getPageSize())));
+        setLocations(transportations);
+        return transportations;
+    }
+
+    public List<TransportationDto> findAllByNameLike(SearchRequest request) {
+        List<TransportationDto> transportations = mapper.toDtoList(repository.findAllByOriginOrDestinationNameOrCode(request.getNameLike(), Pageable.ofSize(request.getPageSize())));
+        setLocations(transportations);
+
+        return transportations;
+    }
+
+    public void setLocations(List<TransportationDto> transportationDtoList) {
+        Set<Long> locationIds = transportationDtoList.stream()
+                .flatMap(transportationDto -> Stream.of(transportationDto.getOriginLocation().getId(), transportationDto.getDestinationLocation().getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (locationIds.isEmpty()) {
+            return;
+        }
+
+        Map<Long, LocationDto> locationMap = locationService.findAllByIds(locationIds);
+
+        for (TransportationDto transportationDto : transportationDtoList) {
+            transportationDto.setOriginLocation(locationMap.get(transportationDto.getOriginLocation().getId()));
+            transportationDto.setDestinationLocation(locationMap.get(transportationDto.getDestinationLocation().getId()));
+        }
     }
 }

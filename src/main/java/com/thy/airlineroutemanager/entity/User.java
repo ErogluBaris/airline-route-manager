@@ -12,7 +12,7 @@ import lombok.Setter;
 public class User {
 
     @Id
-    @SequenceGenerator(name = "user_seq", sequenceName = "seq_username")
+    @SequenceGenerator(name = "user_seq", sequenceName = "seq_username", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
     private Long id;
 
