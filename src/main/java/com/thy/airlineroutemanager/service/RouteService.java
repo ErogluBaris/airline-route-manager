@@ -21,6 +21,7 @@ public class RouteService {
 
     private final TransportationService transportationService;
     private final TransportationMapper transportationMapper;
+    private final TransportationLocationEnricher locationEnricher;
 
     @Cacheable(
             cacheNames = "routes",
@@ -47,11 +48,12 @@ public class RouteService {
 
         transportationList.addAll(transportationService.findByOriginsAndDestinationsAndTransportationType(destinationIdsForOrigin, originIdsForDestination, TransportationType.FLIGHT, requestedOperatingDay));
 
-        return new RouteResponse(
-                convertToDtoList(
-                        processRoutes(transportationList, originLocationId, destinationLocationId, routeDtoList)
-                )
-        );
+        List<Route> routes = processRoutes(transportationList, originLocationId, destinationLocationId, routeDtoList);
+        if (routes.isEmpty()) {
+            return new RouteResponse(new ArrayList<>());
+        }
+
+        return new RouteResponse(convertToDtoList(routes));
     }
 
     private List<Route> processRoutes(List<Transportation> transportationList, Long originId, Long destinationId, List<Route> routeDtoList) {
@@ -106,7 +108,7 @@ public class RouteService {
                 .map(route -> new RouteDto(transportationMapper.toDtoList(route.getTransportations())))
                 .toList();
 
-        transportationService.setLocations(routeDtoList.stream()
+        locationEnricher.enrich(routeDtoList.stream()
                 .flatMap(routeDto -> routeDto.getTransportations().stream())
                 .toList());
 

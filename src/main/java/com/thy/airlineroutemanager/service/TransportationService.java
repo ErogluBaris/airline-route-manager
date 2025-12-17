@@ -1,7 +1,5 @@
 package com.thy.airlineroutemanager.service;
 
-import com.sun.jdi.connect.Transport;
-import com.thy.airlineroutemanager.dto.LocationDto;
 import com.thy.airlineroutemanager.dto.TransportationDto;
 import com.thy.airlineroutemanager.entity.Transportation;
 import com.thy.airlineroutemanager.enums.TransportationType;
@@ -13,11 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 @Service
@@ -25,11 +19,11 @@ public class TransportationService {
 
     private final TransportationRepository repository;
     private final TransportationMapper mapper;
-    private final LocationService locationService;
+    private final TransportationLocationEnricher locationEnricher;
 
     public TransportationDto findById(Long id) {
         TransportationDto transportationDto = mapper.toDto(repository.findById(id).orElseThrow(() -> new RuntimeException("Record Not Found")));
-        setLocations(List.of(transportationDto));
+        locationEnricher.enrich(List.of(transportationDto));
 
         return transportationDto;
     }
@@ -55,33 +49,17 @@ public class TransportationService {
     }
 
     public List<TransportationDto> findAll(SearchRequest request){
-        List<TransportationDto> transportations = mapper.toDtoList(repository.findAllBy(Pageable.ofSize(request.getPageSize())));
-        setLocations(transportations);
+            List<TransportationDto> transportations = mapper.toDtoList(repository.findAllBy(Pageable.ofSize(request.getPageSize())));
+        locationEnricher.enrich(transportations);
         return transportations;
     }
 
     public List<TransportationDto> findAllByNameLike(SearchRequest request) {
         List<TransportationDto> transportations = mapper.toDtoList(repository.findAllByOriginOrDestinationNameOrCode(request.getNameLike(), Pageable.ofSize(request.getPageSize())));
-        setLocations(transportations);
+        locationEnricher.enrich(transportations);
 
         return transportations;
     }
 
-    public void setLocations(List<TransportationDto> transportationDtoList) {
-        Set<Long> locationIds = transportationDtoList.stream()
-                .flatMap(transportationDto -> Stream.of(transportationDto.getOriginLocation().getId(), transportationDto.getDestinationLocation().getId()))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
 
-        if (locationIds.isEmpty()) {
-            return;
-        }
-
-        Map<Long, LocationDto> locationMap = locationService.findAllByIds(locationIds);
-
-        for (TransportationDto transportationDto : transportationDtoList) {
-            transportationDto.setOriginLocation(locationMap.get(transportationDto.getOriginLocation().getId()));
-            transportationDto.setDestinationLocation(locationMap.get(transportationDto.getDestinationLocation().getId()));
-        }
-    }
 }

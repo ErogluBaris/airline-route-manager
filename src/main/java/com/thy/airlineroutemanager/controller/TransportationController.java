@@ -24,11 +24,13 @@ public class TransportationController {
 
     @PostMapping
     public TransportationDto create(@RequestBody TransportationDto locationDto){
+        //TODO origin ve destination aynı olamaz
         return transportationService.save(locationDto);
     }
 
     @PutMapping
     public TransportationDto update(@RequestBody TransportationDto locationDto){
+        //TODO origin ve destination aynı olamaz
         return transportationService.update(locationDto);
     }
 

@@ -42,6 +42,7 @@ public class LocationController {
         return locationService.findAll(request.getPageSize());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENCY')")
     @PostMapping("/search")
     public List<LocationDto> search(@RequestBody SearchRequest request){
         //TODO bir sonraki sayfaya gelebilecek şekilde yap. Şu an pagination yok fe tarafına da ekle.

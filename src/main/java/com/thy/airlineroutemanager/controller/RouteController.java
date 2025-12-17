@@ -20,6 +20,7 @@ public class RouteController {
 
     @PostMapping
     public RouteResponse findRoutes(@RequestBody RouteRequest request) {
+        //TODO origin ve destination aynı olamaz
         return routeService.findRoutes(request);
     }
 }
