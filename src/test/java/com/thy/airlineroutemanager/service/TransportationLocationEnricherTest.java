@@ -2,6 +2,9 @@ package com.thy.airlineroutemanager.service;
 
 import com.thy.airlineroutemanager.dto.LocationDto;
 import com.thy.airlineroutemanager.dto.TransportationDto;
+import com.thy.airlineroutemanager.entity.Location;
+import com.thy.airlineroutemanager.mapper.LocationMapper;
+import com.thy.airlineroutemanager.repository.LocationRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -10,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +26,9 @@ class TransportationLocationEnricherTest {
     @InjectMocks
     private TransportationLocationEnricher transportationLocationEnricher;
     @Mock
-    private LocationService locationService;
+    private LocationRepository locationRepository;
+    @Mock
+    private LocationMapper locationMapper;
 
     @Test
     void enrich() {
@@ -36,7 +42,7 @@ class TransportationLocationEnricherTest {
         transportationDto.setOriginLocation(origin);
         transportationDto.setDestinationLocation(destination);
 
-        Map<Long, LocationDto> locationMap = new HashMap<>();
+        List<LocationDto> locationDtoList = new ArrayList<>();
         LocationDto originLocationDto = new LocationDto();
         originLocationDto.setId(1L);
         originLocationDto.setName("origin");
@@ -44,10 +50,12 @@ class TransportationLocationEnricherTest {
         originLocationDto.setId(2L);
         originLocationDto.setName("destination");
 
-        locationMap.put(1L, originLocationDto);
-        locationMap.put(2L, destinationLocationDto);
+        locationDtoList.add(originLocationDto);
+        locationDtoList.add(destinationLocationDto);
 
-        Mockito.when(locationService.findAllByIds(ArgumentMatchers.anySet())).thenReturn(locationMap);
+        List<Location> locations = new ArrayList<>();
+        Mockito.when(locationRepository.findAllById(ArgumentMatchers.anySet())).thenReturn(locations);
+        Mockito.when(locationMapper.toDtoList(locations)).thenReturn(locationDtoList);
 
         transportationLocationEnricher.enrich(List.of(transportationDto));
         assertEquals(transportationDto.getOriginLocation().getName(), originLocationDto.getName());

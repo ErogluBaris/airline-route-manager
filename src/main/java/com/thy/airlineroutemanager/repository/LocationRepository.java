@@ -1,6 +1,7 @@
 package com.thy.airlineroutemanager.repository;
 
 import com.thy.airlineroutemanager.entity.Location;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +18,7 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
         FROM location l
         WHERE l.name ILIKE %:nameLike% or location_code ILIKE %:nameLike%
     """, nativeQuery = true)
-    List<Location> findAllByNameLike(@Param("nameLike") String nameLike, Pageable pageable);
+    Page<Location> findAllByNameLike(@Param("nameLike") String nameLike, Pageable pageable);
 
-    List<Location> findAllBy(Pageable pageable);
+    Page<Location> findAllBy(Pageable pageable);
 }

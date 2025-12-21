@@ -1,9 +1,11 @@
 package com.thy.airlineroutemanager.service;
 
+import com.thy.airlineroutemanager.constant.ValidationConstants;
 import com.thy.airlineroutemanager.domain.Route;
 import com.thy.airlineroutemanager.dto.RouteDto;
 import com.thy.airlineroutemanager.entity.Transportation;
 import com.thy.airlineroutemanager.enums.TransportationType;
+import com.thy.airlineroutemanager.exception.FindRouteException;
 import com.thy.airlineroutemanager.mapper.TransportationMapper;
 import com.thy.airlineroutemanager.request.RouteRequest;
 import com.thy.airlineroutemanager.response.RouteResponse;
@@ -31,6 +33,11 @@ public class RouteService {
     public RouteResponse findRoutes(RouteRequest request) {
         Long originLocationId = request.getOriginLocationId();
         Long destinationLocationId = request.getDestinationLocationId();
+        if (Objects.equals(originLocationId, destinationLocationId)) {
+            throw new FindRouteException(ValidationConstants.FIND_ROUTE_ORIGIN_DESTINATION_CANNOT_BE_SAME);
+        }
+
+
         int requestedOperatingDay = request.getDate().getDayOfWeek().getValue();
 
         List<Transportation> transportationList = transportationService.findByOriginOrDestination(originLocationId, destinationLocationId, requestedOperatingDay);

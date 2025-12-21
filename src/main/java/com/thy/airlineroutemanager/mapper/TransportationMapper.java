@@ -6,6 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import org.springframework.data.domain.Page;
 
 import java.time.DayOfWeek;
 import java.util.Arrays;

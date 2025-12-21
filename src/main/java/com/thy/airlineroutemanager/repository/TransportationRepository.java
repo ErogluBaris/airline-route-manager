@@ -1,6 +1,7 @@
 package com.thy.airlineroutemanager.repository;
 
 import com.thy.airlineroutemanager.entity.Transportation;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -40,9 +41,13 @@ public interface TransportationRepository extends JpaRepository<Transportation, 
         )
         """,
             nativeQuery = true)
-    List<Transportation> findAllByOriginOrDestinationNameOrCode(
+    Page<Transportation> findAllByOriginOrDestinationNameOrCode(
             @Param("searchText") String searchText, Pageable pageable
     );
 
-    List<Transportation> findAllBy(Pageable pageable);
+    Page<Transportation> findAllBy(Pageable pageable);
+
+    boolean existsByOriginLocationOrDestinationLocation(Long originLocationId, Long destinationLocationId);
+
+    void deleteByOriginLocationOrDestinationLocation(Long originLocationId, Long destinationLocationId);
 }

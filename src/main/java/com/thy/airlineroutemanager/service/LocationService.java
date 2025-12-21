@@ -1,31 +1,32 @@
 package com.thy.airlineroutemanager.service;
 
+import com.thy.airlineroutemanager.constant.ValidationConstants;
 import com.thy.airlineroutemanager.dto.LocationDto;
+import com.thy.airlineroutemanager.exception.RecordNotFoundException;
+import com.thy.airlineroutemanager.exception.TransportationOriginDestException;
 import com.thy.airlineroutemanager.mapper.LocationMapper;
 import com.thy.airlineroutemanager.repository.LocationRepository;
 import com.thy.airlineroutemanager.request.SearchRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
 public class LocationService {
 
     private final LocationRepository repository;
-    private final LocationMapper mapper;
+    private final LocationMapper locationMapper;
+    private final TransportationCheckService transportationCheckService;
+    private final PageableFactory pageableFactory;
 
     public LocationDto findById(Long id) {
-        return mapper.toDto(repository.findById(id).orElseThrow(() -> new RuntimeException("Record Not Found")));
+        return locationMapper.toDto(repository.findById(id).orElseThrow(() -> new RecordNotFoundException("Record not found for locationId: " + id)));
     }
 
     public LocationDto save(LocationDto transportationDto) {
-        return mapper.toDto(repository.save(mapper.toEntity(transportationDto)));
+        return locationMapper.toDto(repository.save(locationMapper.toEntity(transportationDto)));
     }
 
     public LocationDto update(LocationDto transportationDto) {
@@ -36,15 +37,26 @@ public class LocationService {
         repository.deleteById(id);
     }
 
-    public List<LocationDto> findAll(int pageSize) {
-        return mapper.toDtoList(repository.findAllBy(Pageable.ofSize(pageSize)));
+    public boolean deleteWithCheck(Long id) {
+        if (transportationCheckService.validate(id)) {
+            delete(id);
+            return true;
+        }
+
+        return false;
     }
 
-    public List<LocationDto> findAllByNameLike(SearchRequest searchRequest) {
-        return mapper.toDtoList(repository.findAllByNameLike(searchRequest.getNameLike(), Pageable.ofSize(searchRequest.getPageSize())));
+    @Transactional
+    public void deleteWithTransportation(Long locationId) {
+        transportationCheckService.deleteTransportationsByLocationId(locationId);
+        repository.deleteById(locationId);
     }
 
-    public Map<Long, LocationDto> findAllByIds(Set<Long> ids) {
-        return mapper.toDtoList(repository.findAllById(ids)).stream().collect(Collectors.toMap(LocationDto::getId, locationDto -> locationDto));
+    public Page<LocationDto> findAll(SearchRequest request) {
+        return repository.findAllBy(pageableFactory.from(request)).map(locationMapper::toDto);
+    }
+
+    public Page<LocationDto> findAllByNameLike(SearchRequest searchRequest) {
+        return repository.findAllByNameLike(searchRequest.getNameLike(), pageableFactory.from(searchRequest)).map(locationMapper::toDto);
     }
 }

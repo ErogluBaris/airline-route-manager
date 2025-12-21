@@ -2,6 +2,8 @@ package com.thy.airlineroutemanager.service;
 
 import com.thy.airlineroutemanager.dto.LocationDto;
 import com.thy.airlineroutemanager.dto.TransportationDto;
+import com.thy.airlineroutemanager.mapper.LocationMapper;
+import com.thy.airlineroutemanager.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +18,8 @@ import java.util.stream.Stream;
 @Component
 public class TransportationLocationEnricher {
 
-    private final LocationService locationService;
+    private final LocationRepository locationRepository;
+    private final LocationMapper locationMapper;
 
     public void enrich(List<TransportationDto> transportationDtoList) {
         Set<Long> locationIds = transportationDtoList.stream()
@@ -29,11 +32,15 @@ public class TransportationLocationEnricher {
             return;
         }
 
-        Map<Long, LocationDto> locationMap = locationService.findAllByIds(locationIds);
+        Map<Long, LocationDto> locationMap = findAllByIds(locationIds);
 
         for (TransportationDto transportationDto : transportationDtoList) {
             transportationDto.setOriginLocation(locationMap.get(transportationDto.getOriginLocation().getId()));
             transportationDto.setDestinationLocation(locationMap.get(transportationDto.getDestinationLocation().getId()));
         }
+    }
+
+    public Map<Long, LocationDto> findAllByIds(Set<Long> ids) {
+        return locationMapper.toDtoList(locationRepository.findAllById(ids)).stream().collect(Collectors.toMap(LocationDto::getId, locationDto -> locationDto));
     }
 }
